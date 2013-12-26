@@ -13,8 +13,7 @@ test("Bower test", function(t) {
   t.ok(bower, "Bower is a valid expression");
 
   bower.get({id: 'underscore'}, '', null, function(err, path) {
-
-    t.ok(path.indexOf('underscore.js') > 0, 'Pulled file from bower');
+    t.ok(path.indexOf('Underscore.js') > 0, 'Pulled file from bower');
     t.end();
   });
 
@@ -33,27 +32,11 @@ test("Checkout Tests", function(t) {
 });
 
 test("Github raw tests", function(t) {
-
-  t.plan(1);
-  async.parallel([
-    function(cb) {
-      git.getGitHubRaw('ryanstevens/ModelFlow', 'package.json', '40efc16', cb);
-    },
-    function(cb) {
-      git.getGitHubRaw('ryanstevens/ModelFlow', 'package.json', '8050f1', cb);
-    }
-  ], function(err, results) {
-
-    git.fileDiff(results[0], results[1], function(err, out) {
-
-      t.ok(out.length>10, "Should have some output");
-      t.end();
-
-    }).on('data', function(data) {
-      console.log(data.toString());
-    });
-
+  t.plan(2);
+  git.getGitHubRaw('ryanstevens/ModelFlow', 'package.json', '40efc16', function (err, res) {
+    t.notOk(err, 'No errors');
+    t.ok(res.length > 0, 'Should have some output');
+    t.end();
   });
-
-})
+});
 

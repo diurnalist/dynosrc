@@ -7,8 +7,11 @@
     "start": "node index.js",
     "test": "node ./node_modules/tap/bin/tap.js --stderr ./test/*.js --tap"
   },
-  "homepage"      : "http://dinosrc.it",
-  "repository"    : {"type": "git", "url": "git://github.com/DynoSRC/dynosrc.git"},
+  "homepage": "http://dinosrc.it",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/DynoSRC/dynosrc.git"
+  },
   "dependencies": {
     "underscore": "1.5.2",
     "diff": "~1.0.7",
@@ -16,10 +19,11 @@
     "async": "~0.2.9",
     "cookies": "~0.3.6",
     "mkdirp": "*",
-    "bower" : "1.2.7",
+    "bower": "1.2.7",
     "Deferred": "*",
     "esformatter": "0.0.11",
-    "request": "2.27.0"
+    "request": "2.27.0",
+    "vcdiff": "git://github.com/diurnalist/vcdiff.js#master"
   },
   "licenses": [
     {
@@ -29,5 +33,9 @@
   ],
   "engines": {
     "node": "0.10.x"
+  },
+  "optionalDependencies": {
+    "jsonstream": "0.0.1",
+    "JSONStream": "~0.7.1"
   }
 }

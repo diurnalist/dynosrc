@@ -1,12 +1,13 @@
 var async = require('async'),
   _ = require('underscore'),
+  fs = require('fs'),
 
   patchit = require('./lib/patchit'),
   middleware = require('./lib/middleware'),
-  sources = require('./lib/sources'),
   errors = require('./lib/errors'),
-  git = require('./lib/git'),
-  fs = require('fs'),
+  pluginLoader = require('./lib/pluginLoader'),
+  sources = {},
+  differs = {},
 
   clientLib = _.template(fs.readFileSync(__dirname + '/dynoSrc-core.js').toString()),
   packageVersion = require('./package.json').version,
@@ -76,7 +77,8 @@ var async = require('async'),
 
     assets: {},
     defaults: {
-      source: 'asset'
+      source: 'asset',
+      differ: 'git'
     },
     get: function(id) {
       var asset = this.assets[id];
@@ -96,6 +98,13 @@ var async = require('async'),
       }
 
       return sources[name];
+    },
+    getDiffer: function (name) {
+      if (! differs[name]) {
+        throw new Error('Differ ' + name + ' not defined!');
+      }
+
+      return differs[name];
     },
     globals: function() {
       return _.omit(this, blacklistedKeys);
@@ -188,11 +197,14 @@ _.extend(DynoSrc.prototype, {
 
     sources[name] = source;
   },
-  git : git,
   readMe : function(cb) {
     fs.readFile(__dirname + '/README.md', 'utf8', cb);
   }
 });
+
+// load all plugins
+sources = pluginLoader(__dirname + '/lib/sources');
+differs = pluginLoader(__dirname + '/lib/differs');
 
 // create a default instance
 module.exports = new DynoSrc();
