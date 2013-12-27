@@ -6,9 +6,9 @@
 
 var manifest = dynoSrc.manifest,
 
-  cookieName = '<%= cookieName %>' || '_ds',
-  cookiePairSeparator = '<%= cookiePairSeparator %>' || '|',
-  cookieRevSeparator = '<%= cookieRevSeparator %>' || '@';
+  cookieName = '<%= cookieName %>',
+  cookiePairSeparator = '<%= cookiePairSeparator %>',
+  cookieRevSeparator = '<%= cookieRevSeparator %>';
 
 /*\
 |*|

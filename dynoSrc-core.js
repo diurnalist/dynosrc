@@ -5,10 +5,14 @@
 (function() {
 
 var manifest = {},
-    plugins = [<% _.map(plugins, function (plugin) { return "'dynoSrc-" + plugin + "'" }).join(',') %>],
-    localStoragePrefix = '<%= localStoragePrefix %>' || 'dynosrc.',
+    plugins = <%= plugins %>,
+    version = '<%= version %>',
+    localStoragePrefix = '<%= localStoragePrefix %>',
     updateCallbacks = [],
-    destroyCallbacks = [];
+    destroyCallbacks = [],
+    callbackCount = 0,
+    endpoint = '/dynoSrc',
+    callbackPrefix = '__dynoSrcCb';
 
 function evalScript (src) {
   var script = document.createElement('script');
@@ -59,13 +63,41 @@ function makeStorage (ls) {
     get: function get (name, version) {
       var stored = deserialize(getItem(localStoragePrefix + name));
 
-      return stored && (version && version === stored.version) && stored.src;
+      return stored && (! version || version === stored.version) && stored.src;
     },
     set: function storeModule (name, version, src) {
       return setItem(localStoragePrefix + name, serialize(version, src));
     }
   };
 }
+
+function fetch (name, version, cb) {
+  var from = this.getVersion(name) || '',
+      callbackName = callbackPrefix + (callbackCount++),
+      path = endpoint + '?',
+      script = document.createElement('script');
+
+  window[callbackName] = function (name, version, patchSrc) {
+    var updated = dynoSrc.add(name, version, patchSrc);
+
+    if (cb) {
+      cb(updated, patchSrc);
+    }
+
+    delete window[callbackName];
+  };
+
+  path += 'id=' + name +
+    '&from=' + from +
+    '&to=' + (version || 'HEAD') +
+    '&fmt=js' +
+    '&callback=' + callbackName;
+
+  document.head.appendChild(script);
+  script.src = path;
+
+  return script;
+};
 
 window.dynoSrc = {
   manifest: manifest,
@@ -111,17 +143,24 @@ window.dynoSrc = {
   onDestroy: function onDestroy (fn) {
     destroyCallbacks.push(fn);
   },
-  load: function load (name, version) {
+  load: function load (name, version, cb) {
     if (!name) {
       throw new Error('No module name!');
     }
 
     var src = this.storage.get(name, version) || '';
 
-    return src ? evalScript(src) : false;
+    if (src) {
+      evalScript(src);
+      if (cb) cb(src);
+    } else {
+      fetch.call(this, name, version, cb);
+    }
   },
   init: function init () {
-    plugins.forEach(this.load.bind(this));
+    plugins.forEach(function (plugin) {
+      this.load(plugin, version);
+    }, this);
   },
   destroy: function destroy () {
     for (var name in manifest) {

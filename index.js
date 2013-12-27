@@ -69,6 +69,7 @@ var async = require('async'),
     scriptAddFn: 'dynoSrc.add',
     scriptLoadFn: 'dynoSrc.load',
     plugins: ['cookie', 'diff'],
+    version: packageVersion,
     
     maxAge: 2592000,
 
@@ -157,12 +158,12 @@ _.extend(DynoSrc.prototype, {
   asset: function(id, conf) {
     this.config.assets[id] = _.extend({id: id}, this.config.assets[id], conf);
   },
-  assets: function(assets) {
+  assets: function (assets) {
     _.each(assets, function(conf, id) {
       this.asset(id, conf);
     }, this);
   },
-  patch: function(id, from, to, format, cb) {
+  patch: function (id, from, to, format, cb) {
     var cb = _.last(arguments),
       fmt = arguments.length === 5 ? arguments[3] : 'json';
 
@@ -172,7 +173,7 @@ _.extend(DynoSrc.prototype, {
 
     return patchit(id, from, to, this.config, onPatch.bind(null, fmt, cb));
   },
-  getPatches : function(req, options, cb) {
+  getPatches : function (req, options, cb) {
     var format = options.format || 'script',
       desiredPatches = options.patches
         ? options.patches.concat(this.config.plugins.map(function(p) { return 'dynoSrc-' + p; }))
@@ -183,14 +184,22 @@ _.extend(DynoSrc.prototype, {
       return this.patch.bind(this, patch.id, patch.from, patch.to, format);
     }, this), cb);
   },
-  getClientLib : function() {
+  getClientLib : function (raw) {
     // TODO: minification support
-    return '<script>' 
-      + clientLib(this.config.globals()) 
-      + '</script>';
+    var tmplData = this.config.globals();
+
+    tmplData.plugins = JSON.stringify(_.map(tmplData.plugins, function (name) {
+      return 'dynoSrc-' + name;
+    }));
+
+    var clientJs = clientLib(tmplData);
+
+    return raw
+      ? clientJs
+      : ['<script>', clientJs, '</script>'].join('\n');
   },
   middleware: middleware,
-  defineSource: function(name, source) {
+  defineSource: function (name, source) {
     if (sources[name]) {
       throw new Error('Source ' + name + ' already exists!');
     }
