@@ -12,8 +12,8 @@ test("Bower test", function(t) {
   var bower = require('../lib/sources/bower');
   t.ok(bower, "Bower is a valid expression");
 
-  bower.get({id: 'underscore'}, '', null, function(err, path) {
-    t.ok(path.indexOf('Underscore.js') > 0, 'Pulled file from bower');
+  bower.get({id: 'underscore'}, '', null, function(err, src) {
+    t.ok(src.toString().indexOf('Underscore.js') > 0, 'Pulled file from bower');
     t.end();
   });
 
